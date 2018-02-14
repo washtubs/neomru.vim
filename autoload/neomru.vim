@@ -105,7 +105,7 @@ let s:mru = {
 
 function! s:mru.is_a(type) abort
   return self.type == a:type
-endfunction 
+endfunction
 function! s:mru.validate() abort
     throw 'unite(mru) umimplemented method: validate()!'
 endfunction
@@ -116,10 +116,14 @@ function! s:mru.gather_candidates(args, context) abort
   endif
 
   if a:context.is_redraw && g:neomru#do_validate
-    call self.reload()
+    "call self.reload()
   endif
 
-  return copy(self.candidates)
+  " filter exists
+  let defcopy = copy(self.candidates)
+  call filter(defcopy, 's:is_file_exist(v:val)')
+  call filter(defcopy, 's:is_current_file(v:val)')
+  return defcopy
 endfunction
 function! s:mru.delete(candidates) abort
   for candidate in a:candidates
@@ -204,11 +208,11 @@ function! s:mru.load(...) abort
   let self.is_loaded = 1
 endfunction
 function! s:mru.reload() abort
-  call self.load(1)
+  "call self.load(1)
 
-  call filter(self.candidates,
-        \ ((self.type == 'file') ?
-        \ "s:is_file_exist(v:val)" : "s:is_directory_exist(v:val)"))
+  "call filter(self.candidates,
+        "\ ((self.type == 'file') ?
+        "\ "s:is_file_exist(v:val)" : "s:is_directory_exist(v:val)"))
 endfunction
 function! s:mru.append(path) abort
   call self.load()
@@ -254,9 +258,10 @@ let s:file_mru = extend(deepcopy(s:mru), {
       \ }
       \)
 function! s:file_mru.validate() abort
-  if self.do_validate
-    call filter(self.candidates, 's:is_file_exist(v:val)')
-  endif
+  " DONT
+  "if self.do_validate
+    "call filter(self.candidates, 's:is_file_exist(v:val)')
+  "endif
 endfunction
 
 " Directory MRU:  2
@@ -345,9 +350,9 @@ function! neomru#_append() abort
   endif
 endfunction
 function! neomru#_reload() abort
-  for m in values(s:MRUs)
-    call m.reload()
-  endfor
+  "for m in values(s:MRUs)
+    "call m.reload()
+  "endfor
 endfunction
 function! neomru#_save(...) abort
   let opts = a:0 >= 1 && type(a:1) == type({}) ? a:1 : {}
@@ -396,6 +401,9 @@ function! s:is_file_exist(path) abort
   let ignore = !empty(g:neomru#file_mru_ignore_pattern)
         \ && a:path =~ g:neomru#file_mru_ignore_pattern
   return !ignore && (getftype(a:path) ==# 'file' || a:path =~ '^\h\w\+:')
+endfunction
+function! s:is_current_file(path) abort
+    return expand("%:p") !=? a:path
 endfunction
 function! s:is_directory_exist(path) abort
   let ignore = !empty(g:neomru#directory_mru_ignore_pattern)
