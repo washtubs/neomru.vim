@@ -426,6 +426,9 @@ endfunction
 function! s:is_current_file(path) abort
     return expand("%:p") !=? a:path
 endfunction
+function! s:is_current_file(path) abort
+    return expand("%:p") !=? a:path
+endfunction
 function! s:is_directory_exist(path) abort
   let ignore = !empty(g:neomru#directory_mru_ignore_pattern)
         \ && a:path =~ g:neomru#directory_mru_ignore_pattern
